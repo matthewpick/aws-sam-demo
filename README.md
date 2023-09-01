@@ -5,7 +5,12 @@ Deployment
 make deploy
 ```
 
-Development
+Teardown
+```bash
+sam delete  # follow prompts
+```
+
+Local Development
 ```bash
 make venv
 make run
