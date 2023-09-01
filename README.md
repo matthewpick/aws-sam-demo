@@ -7,6 +7,6 @@ make deploy
 
 Development
 ```bash
-make init
+make venv
 make run
 ```

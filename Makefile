@@ -12,12 +12,12 @@ clean:
 
 # LOCAL DEVELOPMENT
 
-venv: venv/touchfile
-
-init: venv
+venv/touchfile: src/requirements.txt
 	test -d venv || python3 -m venv venv
 	. venv/bin/activate; pip install -Ur src/requirements.txt
 	touch venv/touchfile
+
+venv: venv/touchfile
 
 run:
 	source venv/bin/activate; \
