@@ -1,0 +1,80 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Demo lambda that is invoked on a cron schedule
+
+Parameters:
+
+  pEnv:
+    Type: String
+    Description: Short name of the environment (e.g dev, staging, prod)
+    Default: dev
+
+Resources:
+
+  rDemoLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                -  lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+
+  rDemoLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda.handler
+      CodeUri: src
+      Role: !GetAtt rDemoLambdaRole.Arn
+      Runtime: python3.9
+      Timeout: 300  # seconds
+      Environment:
+        Variables:
+          DEBUG: 'False'
+          ENV: !Ref pEnv
+          COW_SPEAK: 'Hello world!'
+
+  rDemoLambdaSchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - scheduler.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "InvokeLambda"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt rDemoLambda.Arn
+
+  rDemoLambdaDailySchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      ScheduleExpression: 'cron(0 22 * * ? *)'
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn: !GetAtt rDemoLambda.Arn
+        RoleArn: !GetAtt rDemoLambdaSchedulerRole.Arn
+
+
+Outputs:
+  oDemoLambdaArn:
+    Value: !GetAtt rDemoLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-rDemoLambdaArn"

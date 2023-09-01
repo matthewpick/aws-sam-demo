@@ -16,7 +16,7 @@ def _parse_bool(val: Union[str, bool]) -> bool:  # pylint: disable=E1136
 # AppConfig class with required fields, default values, type checking, and typecasting for int and bool values
 class AppConfig:
     DEBUG: bool = False
-    ENV: str = 'production'
+    ENV: str
     COW_SPEAK: str
 
     """
